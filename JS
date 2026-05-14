@@ -1,0 +1,1108 @@
+```html
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>福岡市 保育園保活ガイド</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 1.5rem;
+            height: 100%;
+            width: 2px;
+            background-color: #e5e7eb;
+        }
+        .timeline-item {
+            position: relative;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: 1.5rem;
+            transform: translateX(-50%);
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            border: 4px solid #eff6ff;
+            top: 1.5rem;
+            z-index: 10;
+        }
+        .task-checkbox:checked + label {
+            text-decoration: line-through;
+            color: #9ca3af;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* AIによるハイライト用のスタイル */
+        mark {
+            background-color: #fde047; /* Tailwind yellow-300 */
+            color: #1f2937;
+            padding: 0.125rem 0.25rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="antialiased bg-gray-100 text-gray-800 h-screen flex flex-col md:flex-row overflow-hidden relative">
+
+    <!-- トースト通知コンテナ -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- ローディングオーバーレイ -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-70 z-50 hidden flex-col items-center justify-center text-white backdrop-blur-sm transition-opacity">
+        <svg class="animate-spin h-12 w-12 mb-4 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="font-bold text-xl mb-2">AIがメモを分析し、情報を再整理しています...</p>
+        <p class="text-sm text-gray-300">新しく追記された内容はハイライトされます。</p>
+        <p class="text-xs text-gray-400 mt-1">（処理には数秒〜数十秒かかります）</p>
+    </div>
+
+    <!-- モバイル用ヘッダー -->
+    <header class="md:hidden bg-gray-900 text-white p-4 flex items-center justify-between z-20 flex-shrink-0 shadow-md">
+        <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            <h1 class="text-lg font-bold">福岡市 保活ガイド</h1>
+        </div>
+        <button id="mobile-menu-btn" class="p-2 focus:outline-none hover:bg-gray-800 rounded transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+    </header>
+
+    <!-- サイドバーのオーバーレイ（モバイル用） -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden transition-opacity"></div>
+
+    <!-- ナビゲーションバー (左サイドバー) -->
+    <nav id="sidebar" class="bg-gray-900 text-white w-64 flex-shrink-0 flex flex-col shadow-xl z-30 fixed inset-y-0 left-0 transform -translate-x-full transition-transform duration-300 md:relative md:translate-x-0">
+        <div class="p-4 bg-gray-950 flex items-center gap-2 border-b border-gray-800">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            <h1 class="text-lg font-bold">福岡市 保活ガイド</h1>
+        </div>
+        <div class="flex-1 overflow-y-auto flex flex-col p-3 gap-2 scrollbar-hide">
+            
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mt-2 mb-1 pl-2">情報ソース・編集</div>
+            <button class="nav-btn w-full text-left px-4 py-2.5 rounded-lg text-sm font-bold transition-colors duration-150 text-gray-400 hover:bg-gray-800 hover:text-white" data-target="section-memo">
+                📝 メモ追記と情報更新
+            </button>
+
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mt-4 mb-1 pl-2">整理された情報</div>
+            <button class="nav-btn w-full text-left px-4 py-2.5 rounded-lg text-sm font-bold transition-colors duration-150 bg-blue-600 text-white" data-target="section-rules">
+                1. 現状と基本ルール
+            </button>
+            <button class="nav-btn w-full text-left px-4 py-2.5 rounded-lg text-sm font-bold transition-colors duration-150 text-gray-400 hover:bg-gray-800 hover:text-white" data-target="section-facilities">
+                2. 施設ごとの特徴
+            </button>
+            <button class="nav-btn w-full text-left px-4 py-2.5 rounded-lg text-sm font-bold transition-colors duration-150 text-gray-400 hover:bg-gray-800 hover:text-white" data-target="section-schedule">
+                3. スケジュール
+            </button>
+
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mt-4 mb-1 pl-2">ワークスペース</div>
+            <button class="nav-btn w-full text-left px-4 py-2.5 rounded-lg text-sm font-bold transition-colors duration-150 text-gray-400 hover:bg-gray-800 hover:text-white" data-target="section-tasks">
+                4. タスクリスト
+            </button>
+            <button class="nav-btn w-full text-left px-4 py-2.5 rounded-lg text-sm font-bold transition-colors duration-150 text-gray-400 hover:bg-gray-800 hover:text-white" data-target="section-nurseries">
+                5. 園リサーチメモ
+            </button>
+            <button class="nav-btn w-full text-left px-4 py-2.5 rounded-lg text-sm font-bold transition-colors duration-150 text-gray-400 hover:bg-gray-800 hover:text-white" data-target="section-plans">
+                6. プラン設計
+            </button>
+            <button class="nav-btn w-full text-left px-4 py-2.5 rounded-lg text-sm font-bold transition-colors duration-150 text-gray-400 hover:bg-gray-800 hover:text-white" data-target="section-availability">
+                7. 空き状況一覧 (PDF 1)
+            </button>
+            <button class="nav-btn w-full text-left px-4 py-2.5 rounded-lg text-sm font-bold transition-colors duration-150 text-gray-400 hover:bg-gray-800 hover:text-white" data-target="section-availability-2">
+                8. 空き状況一覧 (PDF 2)
+            </button>
+            <button class="nav-btn w-full text-left px-4 py-2.5 rounded-lg text-sm font-bold transition-colors duration-150 text-gray-400 hover:bg-gray-800 hover:text-white" data-target="section-availability-3">
+                9. 空き状況一覧 (PDF 3)
+            </button>
+        </div>
+    </nav>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-100 relative">
+        <div class="max-w-4xl mx-auto">
+
+            <!-- 0. 元のメモ（編集用） -->
+            <section id="section-memo" class="content-section hidden bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">📝</span>
+                        <h2 class="text-lg font-bold text-gray-800">メモの追記と情報更新</h2>
+                    </div>
+                    <button id="update-ai-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-md transition flex items-center justify-center gap-2 shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                        AIで情報を再整理する
+                    </button>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-600 mb-4 bg-blue-50 p-3 rounded border border-blue-100">
+                        新しく分かった情報（例: 「中央区の〇〇園は自転車通園不可だった」「〇〇の書類は来週までに必要」等）をここに追記して上のボタンを押すと、セクション1〜3の整理情報に自動で反映されます。追加・変更箇所は<mark>ハイライト</mark>されます。
+                    </p>
+                    <textarea id="memo-textarea" class="w-full h-96 md:h-[500px] p-4 border border-gray-300 rounded-lg text-sm text-gray-800 leading-relaxed focus:ring-blue-500 focus:border-blue-500 shadow-inner resize-y"></textarea>
+                </div>
+            </section>
+
+            <!-- 1. 現状と基本ルール (動的生成エリア) -->
+            <section id="section-rules" class="content-section bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-blue-50 px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h2 class="text-lg font-bold text-blue-800">1. 現状の厳しさと基本ルール</h2>
+                </div>
+                <div id="rules-content" class="p-6 space-y-4">
+                    <!-- JSで描画 -->
+                </div>
+            </section>
+
+            <!-- 2. 施設形態と特徴 (動的生成エリア) -->
+            <section id="section-facilities" class="content-section hidden bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-indigo-50 px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    <h2 class="text-lg font-bold text-indigo-800">2. 施設ごとの特徴と戦略</h2>
+                </div>
+                <div class="p-6">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">施設の種類</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">保育料・基準</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">重要な特徴・注意点</th>
+                                </tr>
+                            </thead>
+                            <tbody id="facilities-tbody" class="bg-white divide-y divide-gray-200 text-sm">
+                                <!-- JSで描画 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. 入園スケジュール（時系列） (動的生成エリア) -->
+            <section id="section-schedule" class="content-section hidden bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-emerald-50 px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <h2 class="text-lg font-bold text-emerald-800">3. アクションスケジュール（目標）</h2>
+                </div>
+                <div class="p-6 relative">
+                    <div id="schedule-container" class="timeline-container relative py-2">
+                        <!-- JSで描画 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. タスクリスト (変更なし) -->
+            <section id="section-tasks" class="content-section hidden bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-amber-50 px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    <h2 class="text-lg font-bold text-amber-800">4. 実行タスクリスト</h2>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-500 mb-4">クリックして完了したタスクにチェックを入れてください。</p>
+                    <div class="space-y-6">
+                        <!-- フェーズ1 -->
+                        <div>
+                            <h3 class="font-bold text-gray-700 border-b pb-2 mb-3">フェーズ1：条件確定とリサーチ</h3>
+                            <div class="space-y-2">
+                                <div class="flex items-start gap-3">
+                                    <input type="checkbox" id="task1-1" class="task-checkbox mt-1 h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    <label for="task1-1" class="text-gray-800 cursor-pointer select-none">
+                                        <span class="font-semibold block">いつから働くかの検討</span>
+                                        <span class="text-sm text-gray-500">何歳児クラスでどの施設を利用するか、90日ルールに耐えられるかの戦略決定</span>
+                                    </label>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <input type="checkbox" id="task1-2" class="task-checkbox mt-1 h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    <label for="task1-2" class="text-gray-800 cursor-pointer select-none">
+                                        <span class="font-semibold block">世帯の市民税所得割額の確認</span>
+                                        <span class="text-sm text-gray-500">住民税決定通知書等を確認し、福岡市の階層表から認可保育園の保育料を算出・比較</span>
+                                    </label>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <input type="checkbox" id="task1-3" class="task-checkbox mt-1 h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    <label for="task1-3" class="text-gray-800 cursor-pointer select-none">
+                                        <span class="font-semibold block">施設のリサーチ・リストアップ</span>
+                                        <span class="text-sm text-gray-500">通える範囲の認可・小規模・企業主導型・幼稚園を洗い出す</span>
+                                    </label>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <input type="checkbox" id="task1-4" class="task-checkbox mt-1 h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    <label for="task1-4" class="text-gray-800 cursor-pointer select-none">
+                                        <span class="font-semibold block">提携先・加点の確認（該当者）</span>
+                                        <span class="text-sm text-gray-500">小規模の提携先の場所・種類、企業主導型からの転入時の加点要素を区役所に確認</span>
+                                    </label>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <input type="checkbox" id="task1-5" class="task-checkbox mt-1 h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    <label for="task1-5" class="text-gray-800 cursor-pointer select-none">
+                                        <span class="font-semibold block">空き状況の確認</span>
+                                        <span class="text-sm text-gray-500">福岡市のHPや各園への電話で現在の空き状況を把握</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- フェーズ2 -->
+                        <div>
+                            <h3 class="font-bold text-gray-700 border-b pb-2 mb-3">フェーズ2：見学と選定</h3>
+                            <div class="space-y-2">
+                                <div class="flex items-start gap-3">
+                                    <input type="checkbox" id="task2-1" class="task-checkbox mt-1 h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    <label for="task2-1" class="text-gray-800 cursor-pointer select-none">
+                                        <span class="font-semibold block">園の見学予約</span>
+                                        <span class="text-sm text-gray-500">入園希望の3ヶ月前を目安にアポイントを取る</span>
+                                    </label>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <input type="checkbox" id="task2-2" class="task-checkbox mt-1 h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    <label for="task2-2" class="text-gray-800 cursor-pointer select-none">
+                                        <span class="font-semibold block">園見学の実施</span>
+                                        <span class="text-sm text-gray-500">空き状況、雰囲気、小規模の場合は提携先への進学実績などを直接質問</span>
+                                    </label>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <input type="checkbox" id="task2-3" class="task-checkbox mt-1 h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    <label for="task2-3" class="text-gray-800 cursor-pointer select-none">
+                                        <span class="font-semibold block">希望園の選定（最大5つ）</span>
+                                        <span class="text-sm text-gray-500">見学した園の中から、優先順位をつけて申し込む園を決定</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- フェーズ3 -->
+                        <div>
+                            <h3 class="font-bold text-gray-700 border-b pb-2 mb-3">フェーズ3：申し込み</h3>
+                            <div class="space-y-2">
+                                <div class="flex items-start gap-3">
+                                    <input type="checkbox" id="task3-1" class="task-checkbox mt-1 h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    <label for="task3-1" class="text-gray-800 cursor-pointer select-none">
+                                        <span class="font-semibold block">申込書類の準備</span>
+                                        <span class="text-sm text-gray-500">（紙またはネット）就労証明や求職に関する申立書などの準備</span>
+                                    </label>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <input type="checkbox" id="task3-2" class="task-checkbox mt-1 h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    <label for="task3-2" class="text-gray-800 cursor-pointer select-none">
+                                        <span class="font-semibold block">当年度分の申し込み実行</span>
+                                        <span class="text-sm text-gray-500">入所希望日の原則1ヶ月前（自己目標は2ヶ月前）に提出</span>
+                                    </label>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <input type="checkbox" id="task3-3" class="task-checkbox mt-1 h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    <label for="task3-3" class="text-gray-800 cursor-pointer select-none">
+                                        <span class="font-semibold block">翌年度分の同時申し込み</span>
+                                        <span class="text-sm text-gray-500">年度が変わる場合の4月入園等の申し込みも並行して完了させる</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. 園リサーチメモ -->
+            <section id="section-nurseries" class="content-section hidden bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-purple-50 px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                        <h2 class="text-lg font-bold text-purple-800">5. 園リサーチメモ</h2>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="openExternalLink('https://kodomo-hoiku.city.fukuoka.lg.jp/search', event)" class="bg-gray-800 hover:bg-gray-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            福岡市 保育施設検索を開く
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-500 mb-4">候補となる園の情報を記録しましょう。ここで登録した園は、下のプラン設計で選択できるようになります。</p>
+                    <div id="nursery-list" class="space-y-4 mb-4"></div>
+                    <button id="add-nursery-btn" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-purple-700 transition flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                        園を追加する
+                    </button>
+                </div>
+            </section>
+
+            <!-- 6. 申し込みプラン設計 (変更なし) -->
+            <section id="section-plans" class="content-section hidden bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-teal-50 px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    <h2 class="text-lg font-bold text-teal-800">6. 申し込みプラン設計</h2>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-500 mb-4">福岡市の最大5園までの申し込み枠を活用し、組み合わせパターンを複数作成して比較・検討できます。</p>
+                    <div id="plan-list" class="space-y-6 mb-4"></div>
+                    <button id="add-plan-btn" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-teal-700 transition flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                        プランを追加する
+                    </button>
+                </div>
+            </section>
+
+            <!-- 7. 空き状況一覧 (PDFビューア) 新規追加 -->
+            <section id="section-availability" class="content-section hidden bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[80vh]">
+                <div class="bg-rose-50 px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <h2 class="text-lg font-bold text-rose-800">7. 空き状況一覧 (PDF 1)</h2>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <!-- 公式PDFへのリンク -->
+                        <button onclick="openExternalLink('https://kodomo.city.fukuoka.lg.jp/wp-content/uploads/2025/09/d202ed28904cd28e882f6ee0ec68dba8.pdf', event)" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                            別タブで開く (またはURLコピー)
+                        </button>
+                        <!-- 福岡市の空きマップサイトへのリンク（推奨） -->
+                        <button onclick="openExternalLink('https://kodomo-hoiku.city.fukuoka.lg.jp/', event)" class="bg-gray-800 hover:bg-gray-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
+                            空きマップ(Web版) を開く
+                        </button>
+                    </div>
+                </div>
+                <!-- iframeによるPDFの埋め込み表示 (Google Docs Viewer経由にして全ページ表示対応) -->
+                <div class="flex-grow p-0 relative bg-gray-200">
+                    <iframe src="https://docs.google.com/gview?url=https://kodomo.city.fukuoka.lg.jp/wp-content/uploads/2025/09/162fd6c3d3fba81f6caa9de673654064-4.pdf&embedded=true" class="w-full h-full border-0 absolute inset-0" title="福岡市保育施設空き状況 2"></iframe>
+                </div>
+            </section>
+
+            <!-- 9. 空き状況一覧 (PDF 3) 新規追加 -->
+            <section id="section-availability-3" class="content-section hidden bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[80vh]">
+                <div class="bg-rose-50 px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <h2 class="text-lg font-bold text-rose-800">9. 空き状況一覧 (PDF 3)</h2>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <!-- 公式PDFへのリンク -->
+                        <button onclick="openExternalLink('https://kodomo.city.fukuoka.lg.jp/wp-content/uploads/2026/04/80c11f89f7f60389a63e38ec74f40d8d-1.pdf', event)" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                            別タブで開く (またはURLコピー)
+                        </button>
+                    </div>
+                </div>
+                <!-- iframeによるPDFの埋め込み表示 (Google Docs Viewer経由にして全ページ表示対応) -->
+                <div class="flex-grow p-0 relative bg-gray-200">
+                    <iframe src="https://docs.google.com/gview?url=https://kodomo.city.fukuoka.lg.jp/wp-content/uploads/2026/04/80c11f89f7f60389a63e38ec74f40d8d-1.pdf&embedded=true" class="w-full h-full border-0 absolute inset-0" title="福岡市保育施設空き状況 3"></iframe>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- UI制御・状態保存スクリプト -->
+    <script>
+        // APIキーは環境から自動で注入されます
+        const apiKey = ""; 
+
+        // 初期データ（初回ロード時に使用）
+        const defaultMemoText = `保育園の動きについて
+
+・入園希望日を決める
+　現状福岡市の1歳児クラスはほぼ空きなし
+　0歳児クラスからの繰り上がりでほぼ埋まる、若干の増枠があったとしてもそこに申し込みが殺到。
+　判定はポイント制なのでフルタイム150pt＞求職中50ptなので勝ち目薄い。
+　判定時点は申し込み時点。◯月時点とかではない。
+　0歳児クラスであればまだ若干数の空きあり
+　年度単位で動くので4月が1番枠が広い（空き状況が回復する）が、0歳児からの繰り上がりほか上記のとおり実質は空きなし
+　認可保育園は世帯の市民税所得割額(6%ベース)を合算し階層表に当てはめて算出する
+　認可保育園の場合は求職中で万が一申し込みが通った場合、90日間の間に職をきめる必要あり。最初の30日は慣らし保育、あとの60日で職を決める動きも可能とのアドバイス
+　申し込みは年度中有効で毎月1日、11日、21日に入所調整の抽選がされる。最初の1回がダメな場合保留通知がくる。以降は受からない限り年度末含め特に通知は来ない。翌年度の申し込みも同時並行で進めておくと作業が1回で済む。
+　小規模保育も認可保育園の一種。ただし2歳までしか利用できない。抽選基準は同一。提携の保育園・幼稚園がある場合ほぼ確実にそちらに移れる。区が違うこともあるのでリサーチ必須。
+　企業主導型は子どもの年齢によっては金額が変わるが親の属性によって変わることはない。これを利用しつつ就職したら改めて認可を申し込む動きも可能。
+　幼稚園の場合、3歳からがほとんどだが2歳から可能な場所もある。制服やリュックなど初期コスト高い。親の就労状況は関係なく申し込めば入れる。
+
+・見学に行く
+　申し込み期限からの逆算で3ヶ月前くらいが目安。いつ見学したかは抽選に影響しない。
+　見学時には空き状況を尋ねる。または福岡市or保育園に電話で尋ねる。
+
+・申し込みをする
+　申し込みは利用希望の原則1ヶ月前まで。余裕をもって2ヶ月前には準備したい。最大5つまで申し込み可能。紙かネット。`;
+
+        const defaultStructuredData = {
+            rules: {
+                oneYearOld: "0歳児からの繰り上がりでほぼ定員が埋まり、実質空きなし。若干の増枠があっても申し込みが殺到します。",
+                zeroYearOld: "まだ若干数の空きがあります。年度単位で動くため4月が一番枠が広いですが、1歳児枠はそれでも厳しいです。",
+                bulletPoints: [
+                    "<span class=\"font-semibold text-red-600\">ポイント制の壁：</span>フルタイム(150pt) ＞ 求職中(50pt) のため、求職中での認可入園はかなり勝ち目が薄いです。",
+                    "<span class=\"font-semibold\">判定のタイミング：</span>「◯月時点」ではなく「申し込み時点」の状況でポイントが判定されます。",
+                    "<span class=\"font-semibold\">入所日と抽選：</span>毎月1日、11日、21日の入所日に合わせて利用調整（抽選）が実施されます。",
+                    "<span class=\"font-semibold\">通知のルール：</span>最初の1回が落選の場合「保留通知」が来ます。以降は受からない限り、年度末を含め通知は来ません。",
+                    "<span class=\"font-semibold\">申し込み有効期限：</span>年度中有効です。翌年度の申し込みも同時並行で進めることが推奨されます。"
+                ]
+            },
+            facilities: [
+                { type: "認可保育園", fee: "世帯の<span class=\"font-bold text-blue-600\">市民税所得割額（6%ベース）</span>を合算し、階層表に当てはめて算出", note: "求職中で入園した場合、<span class=\"font-bold text-red-600\">90日以内に就職必須</span>（最初の30日は慣らし保育、残り60日で職を決める動きが可能）。" },
+                { type: "小規模保育", fee: "認可と同一基準", note: "2歳児クラスまで。提携園（幼稚園の場合も）があればほぼ確実に移れるが、距離や区が異なることもあるためリサーチ必須（市単位なので別区でもOK）。" },
+                { type: "企業主導型", fee: "子どもの年齢で変動（親の属性は不問）", note: "独自の抽選基準。これを利用しつつ、就職後に改めて認可へ申し込む戦略も可能。転入時の加点要素があるか要確認。" },
+                { type: "幼稚園", fee: "園により異なる（初期費用高め）", note: "基本3歳からだが2歳から可能な園もある。親の就労状況は関係なく申し込めば入れる。制服やリュック等のコストに注意。" }
+            ],
+            schedule: [
+                { timing: "入園希望の数ヶ月前", title: "条件整理・リサーチ", description: "所得割額の確認、就労開始時期の検討、候補園のリストアップ。いつから働き、何歳児クラスを狙うか決める。" },
+                { timing: "入園希望の3ヶ月前〜", title: "見学予約・実施", description: "見学時期は抽選に影響しない。空き状況は園や市に直接確認する。※見学した園でないと申し込み不可とする園が多いため必須アクション。" },
+                { timing: "入園希望の2ヶ月前", title: "申し込み準備完了（自己目標）", description: "市の公式締切は「原則1ヶ月前」だが、書類不備や見学漏れを防ぐため、最大5園の選定と書類準備をこの時期に終える。" },
+                { timing: "入園希望の1ヶ月前", title: "公式申込締切・結果通知", description: "最初の抽選で落ちた場合のみ「保留通知」が届く。翌年度の申し込みも並行して行っておく。" },
+                { timing: "入園後（求職中入園の場合）", title: "90日以内の就職タイムリミット", description: "最初の30日間は慣らし保育期間。残りの60日間を含めた計90日以内に就職を決定し、就労証明を提出する必要がある。" }
+            ]
+        };
+
+        // --- 外部リンク制御ユーティリティ ---
+        const showToast = (message) => {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'px-4 py-3 rounded shadow-lg text-sm font-bold text-white bg-gray-800 transition-opacity duration-300 opacity-0 pointer-events-auto';
+            toast.textContent = message;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.remove('opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        };
+
+        const copyToClipboard = (text) => {
+            const input = document.createElement('textarea');
+            input.value = text;
+            input.style.position = 'fixed';
+            input.style.left = '-9999px';
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+        };
+
+        const openExternalLink = (url, event) => {
+            if (event) event.preventDefault();
+            const newWin = window.open(url, '_blank');
+            // Canvas環境などで別タブが開けない場合のフォールバック
+            if (!newWin || newWin.closed || typeof newWin.closed == 'undefined') {
+                copyToClipboard(url);
+                showToast('別タブで開けない環境のため、URLをコピーしました。ブラウザのアドレスバーに貼り付けてください。');
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- サイドバー＆タブ切り替え制御 ---
+            const navBtns = document.querySelectorAll('.nav-btn');
+            const sections = document.querySelectorAll('.content-section');
+            const sidebar = document.getElementById('sidebar');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            const toggleSidebar = () => {
+                sidebar.classList.toggle('-translate-x-full');
+                sidebarOverlay.classList.toggle('hidden');
+            };
+
+            mobileMenuBtn.addEventListener('click', toggleSidebar);
+            sidebarOverlay.addEventListener('click', toggleSidebar);
+
+            navBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (window.innerWidth < 768) toggleSidebar();
+                    navBtns.forEach(b => {
+                        b.classList.remove('bg-blue-600', 'text-white');
+                        b.classList.add('text-gray-400', 'hover:bg-gray-800', 'hover:text-white');
+                    });
+                    btn.classList.remove('text-gray-400', 'hover:bg-gray-800', 'hover:text-white');
+                    btn.classList.add('bg-blue-600', 'text-white');
+
+                    const targetId = btn.getAttribute('data-target');
+                    sections.forEach(sec => {
+                        if (sec.id === targetId) sec.classList.remove('hidden');
+                        else sec.classList.add('hidden');
+                    });
+                });
+            });
+
+            // --- レンダリング処理群 ---
+            const renderRules = (data) => {
+                const container = document.getElementById('rules-content');
+                let bulletHtml = '';
+                if(data.rules && data.rules.bulletPoints) {
+                    data.rules.bulletPoints.forEach(pt => { bulletHtml += `<li>${pt}</li>`; });
+                }
+                
+                container.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-red-50 p-4 rounded-lg border border-red-100">
+                            <h3 class="font-bold text-red-700 mb-2">1歳児クラス</h3>
+                            <p class="text-sm text-gray-800 leading-relaxed">${data.rules?.oneYearOld || ''}</p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                            <h3 class="font-bold text-green-700 mb-2">0歳児クラス</h3>
+                            <p class="text-sm text-gray-800 leading-relaxed">${data.rules?.zeroYearOld || ''}</p>
+                        </div>
+                    </div>
+                    <h3 class="font-bold text-gray-800 border-l-4 border-blue-500 pl-2 mt-4">選考（利用調整）と基本の仕組み</h3>
+                    <ul class="list-disc list-inside text-sm space-y-3 text-gray-700 ml-2 mt-2 leading-relaxed">
+                        ${bulletHtml}
+                    </ul>
+                `;
+            };
+
+            const renderFacilities = (data) => {
+                const tbody = document.getElementById('facilities-tbody');
+                let html = '';
+                if(data.facilities) {
+                    data.facilities.forEach((f, i) => {
+                        const bg = i % 2 === 0 ? 'bg-gray-50/50' : '';
+                        html += `
+                            <tr>
+                                <td class="px-4 py-4 font-bold text-gray-900 ${bg} whitespace-nowrap align-top">${f.type}</td>
+                                <td class="px-4 py-4 ${bg} align-top leading-relaxed">${f.fee}</td>
+                                <td class="px-4 py-4 ${bg} align-top leading-relaxed">${f.note}</td>
+                            </tr>
+                        `;
+                    });
+                }
+                tbody.innerHTML = html;
+            };
+
+            const renderSchedule = (data) => {
+                const container = document.getElementById('schedule-container');
+                let html = '';
+                if(data.schedule) {
+                    data.schedule.forEach((s, i) => {
+                        const isLast = i === data.schedule.length - 1;
+                        const dotColor = isLast ? 'bg-red-500 border-red-100' : 'bg-blue-500 border-blue-100';
+                        const bgColor = isLast ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200';
+                        const titleColor = isLast ? 'text-red-900' : 'text-gray-800';
+                        const badgeColor = isLast ? 'text-red-600' : 'text-emerald-600';
+                        
+                        html += `
+                            <div class="timeline-item pl-12 pb-8">
+                                <div class="timeline-dot ${dotColor}"></div>
+                                <div class="${bgColor} rounded-lg p-4 border shadow-sm">
+                                    <span class="text-sm font-bold ${badgeColor} mb-1 block">${s.timing}</span>
+                                    <h3 class="font-bold ${titleColor} text-lg">${s.title}</h3>
+                                    <p class="text-sm text-gray-700 mt-2 leading-relaxed">${s.description}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                container.innerHTML = html;
+            };
+
+            const renderStructuredData = (data) => {
+                renderRules(data);
+                renderFacilities(data);
+                renderSchedule(data);
+            };
+
+            // --- データ初期化・ロード ---
+            let currentMemo = localStorage.getItem('fukuoka_hokatsu_memo');
+            if (!currentMemo) {
+                currentMemo = defaultMemoText;
+                localStorage.setItem('fukuoka_hokatsu_memo', currentMemo);
+            }
+            const memoTextarea = document.getElementById('memo-textarea');
+            memoTextarea.value = currentMemo;
+
+            let structuredData = JSON.parse(localStorage.getItem('fukuoka_hokatsu_structured_data'));
+            if (!structuredData) {
+                structuredData = defaultStructuredData;
+                localStorage.setItem('fukuoka_hokatsu_structured_data', JSON.stringify(structuredData));
+            }
+            renderStructuredData(structuredData);
+
+            memoTextarea.addEventListener('input', (e) => {
+                localStorage.setItem('fukuoka_hokatsu_memo', e.target.value);
+            });
+
+            // --- AI更新機能 (Gemini API) ---
+            const updateAiBtn = document.getElementById('update-ai-btn');
+            const loadingOverlay = document.getElementById('loading-overlay');
+
+            const fetchWithRetry = async (memo) => {
+                if(!apiKey) {
+                    throw new Error("APIキーが設定されていません。システム環境を確認してください。");
+                }
+
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                
+                const prompt = `
+あなたはプロの保育園保活アドバイザーです。ユーザーが追記・編集した以下の「保活メモ」の内容を分析し、福岡市の保育園保活に関する「1. 現状と基本ルール」「2. 施設ごとの特徴」「3. スケジュール」を整理してJSON形式で出力してください。
+
+【最重要ルール：変更点のハイライト】
+元の基本的な情報から「新しく追加された内容」や「以前から変更された・強調すべき情報」については、出力するJSONのテキスト内で必ず <mark>ハイライトしたいテキスト</mark> のようにHTMLの <mark> タグで囲んでください。
+（例: "中央区の園は<mark>自転車通園不可が多い</mark>ので注意。"）
+
+【JSONフォーマット要件】
+指定したスキーマに厳密に従ってください。配列の数はメモの内容に合わせて適宜増やしても構いません。
+
+保活メモ：
+${memo}
+`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                rules: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        oneYearOld: { type: "STRING" },
+                                        zeroYearOld: { type: "STRING" },
+                                        bulletPoints: { type: "ARRAY", items: { type: "STRING" } }
+                                    }
+                                },
+                                facilities: {
+                                    type: "ARRAY",
+                                    items: {
+                                        type: "OBJECT",
+                                        properties: {
+                                            type: { type: "STRING" },
+                                            fee: { type: "STRING" },
+                                            note: { type: "STRING" }
+                                        }
+                                    }
+                                },
+                                schedule: {
+                                    type: "ARRAY",
+                                    items: {
+                                        type: "OBJECT",
+                                        properties: {
+                                            timing: { type: "STRING" },
+                                            title: { type: "STRING" },
+                                            description: { type: "STRING" }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+
+                let retries = 5;
+                let delay = 1000;
+                
+                for (let i = 0; i < retries; i++) {
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                        
+                        const data = await response.json();
+                        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (!text) throw new Error('No text in response');
+                        
+                        return JSON.parse(text);
+                        
+                    } catch (error) {
+                        if (i === retries - 1) throw error;
+                        await new Promise(res => setTimeout(res, delay));
+                        delay *= 2;
+                    }
+                }
+            };
+
+            updateAiBtn.addEventListener('click', async () => {
+                const currentText = memoTextarea.value.trim();
+                if(!currentText) return alert('メモが空です。内容を入力してください。');
+
+                loadingOverlay.classList.remove('hidden');
+                loadingOverlay.classList.add('flex');
+
+                try {
+                    const resultData = await fetchWithRetry(currentText);
+                    
+                    // 結果を保存して再描画
+                    localStorage.setItem('fukuoka_hokatsu_structured_data', JSON.stringify(resultData));
+                    renderStructuredData(resultData);
+                    
+                    // タブを「現状と基本ルール」に切り替えて変更点を見せる
+                    navBtns[1].click();
+
+                } catch (e) {
+                    console.error(e);
+                    alert('情報の更新に失敗しました。システム環境にAPIキーが存在しないか、ネットワークエラーの可能性があります。\n\n詳細: ' + e.message);
+                } finally {
+                    loadingOverlay.classList.add('hidden');
+                    loadingOverlay.classList.remove('flex');
+                }
+            });
+
+
+            // --- 以下、既存の機能（タスク保存、園リサーチ、プラン設計） ---
+            const checkboxes = document.querySelectorAll('.task-checkbox');
+            checkboxes.forEach(box => {
+                box.checked = localStorage.getItem(box.id) === 'true';
+                box.addEventListener('change', (e) => localStorage.setItem(e.target.id, e.target.checked));
+            });
+
+            let nurseries = JSON.parse(localStorage.getItem('fukuoka_hokatsu_nurseries')) || [];
+            let plans = JSON.parse(localStorage.getItem('fukuoka_hokatsu_plans')) || [];
+            const saveNurseries = () => localStorage.setItem('fukuoka_hokatsu_nurseries', JSON.stringify(nurseries));
+            const savePlans = () => localStorage.setItem('fukuoka_hokatsu_plans', JSON.stringify(plans));
+            const generateId = () => Date.now().toString() + Math.random().toString(36).substring(2);
+
+            const renderNurseries = () => {
+                const list = document.getElementById('nursery-list');
+                list.innerHTML = '';
+                if (nurseries.length === 0) list.innerHTML = '<p class="text-sm text-gray-400 italic">まだ園が登録されていません。「園を追加する」から登録してください。</p>';
+
+                nurseries.forEach(nursery => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-gray-50 border border-gray-200 rounded-lg p-4 relative';
+                    
+                    let urlsHtml = '';
+                    const urls = nursery.urls || [];
+                    urls.forEach((url, urlIndex) => {
+                        urlsHtml += `
+                            <div class="flex items-center gap-2 mb-1">
+                                <input type="url" class="flex-grow border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm p-1.5 border" placeholder="https://..." value="${url}" data-id="${nursery.id}" data-url-index="${urlIndex}">
+                                ${url ? `<button onclick="openExternalLink('${url}', event)" class="text-purple-600 hover:text-purple-800 p-1 shrink-0" title="リンクを開く"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></button>` : `<span class="w-6 inline-block shrink-0"></span>`}
+                                <button class="delete-nursery-url text-gray-400 hover:text-red-500 font-bold p-1 leading-none shrink-0" data-id="${nursery.id}" data-url-index="${urlIndex}">&times;</button>
+                            </div>
+                        `;
+                    });
+
+                    card.innerHTML = `
+                        <button class="delete-nursery text-gray-400 hover:text-red-500 absolute top-2 right-2 text-xl leading-none" data-id="${nursery.id}">&times;</button>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">園の名前</label>
+                                <input type="text" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm p-2 border" placeholder="例：〇〇保育園" value="${nursery.name}" data-id="${nursery.id}" data-field="name">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">施設形態</label>
+                                <select class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm p-2 border bg-white" data-id="${nursery.id}" data-field="type">
+                                    <option value="" ${nursery.type === '' ? 'selected' : ''}>未選択</option>
+                                    <option value="認可" ${nursery.type === '認可' ? 'selected' : ''}>認可保育園</option>
+                                    <option value="小規模" ${nursery.type === '小規模' ? 'selected' : ''}>小規模保育</option>
+                                    <option value="企業主導型" ${nursery.type === '企業主導型' ? 'selected' : ''}>企業主導型</option>
+                                    <option value="幼稚園" ${nursery.type === '幼稚園' ? 'selected' : ''}>幼稚園</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2 flex items-center gap-4">
+                                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                                    <input type="checkbox" class="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-4 w-4" ${nursery.visited ? 'checked' : ''} data-id="${nursery.id}" data-field="visited">
+                                    <span class="font-bold text-gray-700">見学済み</span>
+                                </label>
+                            </div>
+                            <div class="md:col-span-2 grid grid-cols-2 md:grid-cols-5 gap-3 bg-white p-3 rounded-lg border border-purple-100 shadow-inner">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-500 mb-1">全体的な印象</label>
+                                    <select class="w-full border-gray-300 rounded shadow-sm focus:ring-purple-500 focus:border-purple-500 text-xs p-1 border bg-white" data-id="${nursery.id}" data-field="impression">
+                                        <option value="" ${!nursery.impression ? 'selected' : ''}>未選択</option>
+                                        <option value="◎ とても良い" ${nursery.impression === '◎ とても良い' ? 'selected' : ''}>◎ とても良い</option>
+                                        <option value="〇 良い" ${nursery.impression === '〇 良い' ? 'selected' : ''}>〇 良い</option>
+                                        <option value="△ 懸念あり" ${nursery.impression === '△ 懸念あり' ? 'selected' : ''}>△ 懸念あり</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-500 mb-1">通勤ルート</label>
+                                    <select class="w-full border-gray-300 rounded shadow-sm focus:ring-purple-500 focus:border-purple-500 text-xs p-1 border bg-white" data-id="${nursery.id}" data-field="commute">
+                                        <option value="" ${!nursery.commute ? 'selected' : ''}>未選択</option>
+                                        <option value="◎ 便利" ${nursery.commute === '◎ 便利' ? 'selected' : ''}>◎ 便利</option>
+                                        <option value="〇 許容範囲" ${nursery.commute === '〇 許容範囲' ? 'selected' : ''}>〇 許容範囲</option>
+                                        <option value="△ 不便" ${nursery.commute === '△ 不便' ? 'selected' : ''}>△ 不便</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-500 mb-1">延長保育</label>
+                                    <select class="w-full border-gray-300 rounded shadow-sm focus:ring-purple-500 focus:border-purple-500 text-xs p-1 border bg-white" data-id="${nursery.id}" data-field="extendedCare">
+                                        <option value="" ${!nursery.extendedCare ? 'selected' : ''}>未確認</option>
+                                        <option value="あり(使いやすい)" ${nursery.extendedCare === 'あり(使いやすい)' ? 'selected' : ''}>あり(使いやすい)</option>
+                                        <option value="あり(条件あり)" ${nursery.extendedCare === 'あり(条件あり)' ? 'selected' : ''}>あり(条件あり)</option>
+                                        <option value="なし" ${nursery.extendedCare === 'なし' ? 'selected' : ''}>なし</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-500 mb-1">園庭</label>
+                                    <select class="w-full border-gray-300 rounded shadow-sm focus:ring-purple-500 focus:border-purple-500 text-xs p-1 border bg-white" data-id="${nursery.id}" data-field="yard">
+                                        <option value="" ${!nursery.yard ? 'selected' : ''}>未確認</option>
+                                        <option value="あり" ${nursery.yard === 'あり' ? 'selected' : ''}>あり</option>
+                                        <option value="なし(近所の公園)" ${nursery.yard === 'なし(近所の公園)' ? 'selected' : ''}>なし(近所の公園)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-500 mb-1">おむつ対応</label>
+                                    <select class="w-full border-gray-300 rounded shadow-sm focus:ring-purple-500 focus:border-purple-500 text-xs p-1 border bg-white" data-id="${nursery.id}" data-field="diaper">
+                                        <option value="" ${!nursery.diaper ? 'selected' : ''}>未確認</option>
+                                        <option value="園で廃棄" ${nursery.diaper === '園で廃棄' ? 'selected' : ''}>園で廃棄</option>
+                                        <option value="持ち帰り" ${nursery.diaper === '持ち帰り' ? 'selected' : ''}>持ち帰り</option>
+                                        <option value="サブスクあり" ${nursery.diaper === 'サブスクあり' ? 'selected' : ''}>サブスクあり</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-gray-700 mb-1">自由メモ</label>
+                                <textarea class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm p-2 border h-16" placeholder="その他の気付きや提携先の情報などを入力..." data-id="${nursery.id}" data-field="memo">${nursery.memo || ''}</textarea>
+                            </div>
+                            <div class="md:col-span-2 mt-1">
+                                <label class="block text-xs font-bold text-gray-700 mb-1">参考URL (公式サイトなど)</label>
+                                <div class="space-y-1">
+                                    ${urlsHtml}
+                                </div>
+                                <button class="add-nursery-url-btn text-xs text-purple-600 hover:text-purple-800 font-bold mt-2 flex items-center gap-1" data-id="${nursery.id}">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                    URLを追加する
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                });
+
+                list.querySelectorAll('input[type="text"], textarea').forEach(el => el.addEventListener('input', (e) => updateNursery(e.target.dataset.id, e.target.dataset.field, e.target.value)));
+                list.querySelectorAll('select').forEach(el => el.addEventListener('change', (e) => updateNursery(e.target.dataset.id, e.target.dataset.field, e.target.value)));
+                list.querySelectorAll('input[type="checkbox"]').forEach(el => el.addEventListener('change', (e) => updateNursery(e.target.dataset.id, e.target.dataset.field, e.target.checked)));
+                list.querySelectorAll('.delete-nursery').forEach(el => el.addEventListener('click', (e) => deleteNursery(e.target.dataset.id)));
+                
+                // URL用のイベントリスナー
+                list.querySelectorAll('input[type="url"]').forEach(el => el.addEventListener('change', (e) => {
+                    updateNurseryUrl(e.target.dataset.id, parseInt(e.target.dataset.urlIndex), e.target.value);
+                    renderNurseries(); // リンクボタンを更新するために再描画
+                }));
+                list.querySelectorAll('.add-nursery-url-btn').forEach(el => el.addEventListener('click', (e) => addNurseryUrl(e.target.dataset.id)));
+                list.querySelectorAll('.delete-nursery-url').forEach(el => el.addEventListener('click', (e) => deleteNurseryUrl(e.target.dataset.id, parseInt(e.target.dataset.urlIndex))));
+
+                renderPlans();
+            };
+
+            const updateNurseryUrl = (id, index, value) => {
+                const nursery = nurseries.find(n => n.id === id);
+                if (nursery) {
+                    nursery.urls = nursery.urls || [];
+                    nursery.urls[index] = value;
+                    saveNurseries();
+                }
+            };
+            
+            const addNurseryUrl = (id) => {
+                const nursery = nurseries.find(n => n.id === id);
+                if (nursery) {
+                    nursery.urls = nursery.urls || [];
+                    nursery.urls.push('');
+                    saveNurseries();
+                    renderNurseries();
+                }
+            };
+            
+            const deleteNurseryUrl = (id, index) => {
+                const nursery = nurseries.find(n => n.id === id);
+                if (nursery && nursery.urls) {
+                    nursery.urls.splice(index, 1);
+                    saveNurseries();
+                    renderNurseries();
+                }
+            };
+
+            const updateNursery = (id, field, value) => {
+                const index = nurseries.findIndex(n => n.id === id);
+                if (index > -1) {
+                    nurseries[index][field] = value;
+                    saveNurseries();
+                    if(field === 'name' || field === 'type') renderPlans();
+                }
+            };
+
+            const deleteNursery = (id) => {
+                if(confirm('この園の情報を削除しますか？\n（※プランで使用している場合は未選択に戻ります）')) {
+                    nurseries = nurseries.filter(n => n.id !== id);
+                    plans.forEach(p => p.choices = p.choices.map(choice => choice === id ? '' : choice));
+                    saveNurseries();
+                    savePlans();
+                    renderNurseries();
+                }
+            };
+
+            document.getElementById('add-nursery-btn').addEventListener('click', () => {
+                nurseries.push({ id: generateId(), name: '', type: '', visited: false, impression: '', commute: '', extendedCare: '', yard: '', diaper: '', memo: '', urls: [] });
+                saveNurseries();
+                renderNurseries();
+            });
+
+            const renderPlans = () => {
+                const list = document.getElementById('plan-list');
+                list.innerHTML = '';
+                if (plans.length === 0) list.innerHTML = '<p class="text-sm text-gray-400 italic">まだプランが作成されていません。「プランを追加する」から作成してください。</p>';
+
+                plans.forEach(plan => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-gray-50 border border-teal-200 rounded-lg p-4 relative shadow-sm';
+                    let choicesHtml = '';
+                    for(let i=0; i<5; i++) {
+                        let options = `<option value="">選択してください</option>`;
+                        nurseries.forEach(n => {
+                            const selected = plan.choices[i] === n.id ? 'selected' : '';
+                            const name = n.name || '(名称未入力)';
+                            const type = n.type ? `[${n.type}]` : '';
+                            options += `<option value="${n.id}" ${selected}>${name} ${type}</option>`;
+                        });
+                        choicesHtml += `
+                            <div class="flex items-center gap-3">
+                                <span class="font-bold text-teal-800 w-16 shrink-0 text-sm">第${i+1}希望</span>
+                                <select class="flex-grow border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm p-2 border bg-white" data-id="${plan.id}" data-index="${i}">
+                                    ${options}
+                                </select>
+                            </div>
+                        `;
+                    }
+
+                    let urlsHtml = '';
+                    const urls = plan.urls || [];
+                    urls.forEach((url, urlIndex) => {
+                        urlsHtml += `
+                            <div class="flex items-center gap-2 mb-1">
+                                <input type="url" class="flex-grow border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm p-1.5 border bg-white" placeholder="https://..." value="${url}" data-id="${plan.id}" data-url-index="${urlIndex}">
+                                ${url ? `<button onclick="openExternalLink('${url}', event)" class="text-teal-600 hover:text-teal-800 p-1 shrink-0" title="リンクを開く"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></button>` : `<span class="w-6 inline-block shrink-0"></span>`}
+                                <button class="delete-plan-url text-gray-400 hover:text-red-500 font-bold p-1 leading-none shrink-0" data-id="${plan.id}" data-url-index="${urlIndex}">&times;</button>
+                            </div>
+                        `;
+                    });
+
+                    card.innerHTML = `
+                        <div class="flex justify-between items-center mb-3">
+                            <input type="text" class="font-bold text-lg text-teal-900 bg-transparent border-b border-transparent hover:border-teal-300 focus:border-teal-500 focus:outline-none focus:bg-white p-1 rounded w-2/3" value="${plan.name}" placeholder="プラン名（例：超堅実プラン）" data-id="${plan.id}" data-field="name">
+                            <button class="delete-plan text-gray-400 hover:text-red-500 font-bold text-sm" data-id="${plan.id}">削除 &times;</button>
+                        </div>
+                        <div class="space-y-2 bg-white p-4 rounded border border-gray-200">
+                            ${choicesHtml}
+                        </div>
+                        <div class="mt-3">
+                            <textarea class="w-full border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm p-2 border h-16" placeholder="このプランの狙い・メモ" data-id="${plan.id}" data-field="memo">${plan.memo || ''}</textarea>
+                        </div>
+                        <div class="mt-2 border-t border-teal-100 pt-2">
+                            <label class="block text-xs font-bold text-teal-800 mb-1">参考URL (関連サイトなど)</label>
+                            <div class="space-y-1">
+                                ${urlsHtml}
+                            </div>
+                            <button class="add-plan-url-btn text-xs text-teal-600 hover:text-teal-800 font-bold mt-2 flex items-center gap-1" data-id="${plan.id}">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                URLを追加する
+                            </button>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                });
+
+                list.querySelectorAll('input[type="text"], textarea').forEach(el => el.addEventListener('input', (e) => updatePlanField(e.target.dataset.id, e.target.dataset.field, e.target.value)));
+                list.querySelectorAll('select').forEach(el => el.addEventListener('change', (e) => updatePlanChoice(e.target.dataset.id, parseInt(e.target.dataset.index), e.target.value)));
+                list.querySelectorAll('.delete-plan').forEach(el => el.addEventListener('click', (e) => deletePlan(e.target.dataset.id)));
+                
+                // URL用のイベントリスナー
+                list.querySelectorAll('input[type="url"]').forEach(el => el.addEventListener('change', (e) => {
+                    updatePlanUrl(e.target.dataset.id, parseInt(e.target.dataset.urlIndex), e.target.value);
+                    renderPlans();
+                }));
+                list.querySelectorAll('.add-plan-url-btn').forEach(el => el.addEventListener('click', (e) => addPlanUrl(e.target.dataset.id)));
+                list.querySelectorAll('.delete-plan-url').forEach(el => el.addEventListener('click', (e) => deletePlanUrl(e.target.dataset.id, parseInt(e.target.dataset.urlIndex))));
+            };
+
+            const updatePlanUrl = (id, index, value) => {
+                const plan = plans.find(p => p.id === id);
+                if (plan) {
+                    plan.urls = plan.urls || [];
+                    plan.urls[index] = value;
+                    savePlans();
+                }
+            };
+
+            const addPlanUrl = (id) => {
+                const plan = plans.find(p => p.id === id);
+                if (plan) {
+                    plan.urls = plan.urls || [];
+                    plan.urls.push('');
+                    savePlans();
+                    renderPlans();
+                }
+            };
+
+            const deletePlanUrl = (id, index) => {
+                const plan = plans.find(p => p.id === id);
+                if (plan && plan.urls) {
+                    plan.urls.splice(index, 1);
+                    savePlans();
+                    renderPlans();
+                }
+            };
+
+            const updatePlanField = (id, field, value) => {
+                const index = plans.findIndex(p => p.id === id);
+                if (index > -1) { plans[index][field] = value; savePlans(); }
+            };
+
+            const updatePlanChoice = (id, choiceIndex, value) => {
+                const index = plans.findIndex(p => p.id === id);
+                if (index > -1) { plans[index].choices[choiceIndex] = value; savePlans(); }
+            };
+
+            const deletePlan = (id) => {
+                if(confirm('このプランを削除しますか？')) {
+                    plans = plans.filter(p => p.id !== id);
+                    savePlans();
+                    renderPlans();
+                }
+            };
+
+            document.getElementById('add-plan-btn').addEventListener('click', () => {
+                plans.push({ id: generateId(), name: `プラン ${plans.length + 1}`, choices: ['', '', '', '', ''], memo: '', urls: [] });
+                savePlans();
+                renderPlans();
+            });
+
+            renderNurseries();
+            renderPlans();
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+```
